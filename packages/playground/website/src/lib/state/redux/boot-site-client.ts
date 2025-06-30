@@ -15,11 +15,7 @@ import {
 	logErrorEvent,
 	logTrackingEvent,
 } from '../../tracking';
-import {
-	Blueprint,
-	getBlueprintDeclaration,
-	StepDefinition,
-} from '@wp-playground/blueprints';
+import type { BlueprintDeclaration } from '@wp-playground/blueprints';
 import { logger } from '@php-wasm/logger';
 import { setupPostMessageRelay } from '@php-wasm/web';
 import { startPlaygroundWeb } from '@wp-playground/client';
@@ -101,25 +97,11 @@ export function bootSiteClient(
 			}
 		}
 
-		let blueprint: Blueprint;
+		let blueprint: BlueprintDeclaration;
 		if (isWordPressInstalled) {
 			blueprint = site.metadata.runtimeConfiguration!;
 		} else {
-			blueprint = site.metadata.originalBlueprint;
-			const blueprintDeclaration = await getBlueprintDeclaration(
-				blueprint
-			);
-			// Log the names of provided Blueprint's steps.
-			// Only the names (e.g. "runPhp" or "login") are logged. Step options like
-			// code, password, URLs are never sent anywhere.
-			const steps = (blueprintDeclaration?.steps || [])
-				?.filter(
-					(step: any) => !!(typeof step === 'object' && step?.step)
-				)
-				.map((step) => (step as StepDefinition).step);
-			for (const step of steps) {
-				logTrackingEvent('step', { step });
-			}
+			blueprint = site.metadata.originalBlueprint as BlueprintDeclaration;
 		}
 
 		logTrackingEvent('load');

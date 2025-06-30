@@ -8,6 +8,7 @@ export {
 	getBlueprintDeclaration,
 	runBlueprintSteps,
 	compileBlueprint,
+	isStepDefinition,
 } from './lib/compile';
 export type {
 	Blueprint,

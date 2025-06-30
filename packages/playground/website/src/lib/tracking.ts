@@ -1,4 +1,7 @@
-import { Blueprint, isStepDefinition } from '@wp-playground/blueprints';
+import {
+	type BlueprintDeclaration,
+	isStepDefinition,
+} from '@wp-playground/blueprints';
 import { logger } from '@php-wasm/logger';
 
 /**
@@ -69,7 +72,7 @@ export const logThemeInstallEvent = (slug: string) => {
  * Log Blueprint events
  * @param blueprint The Blueprint
  */
-export const logBlueprintEvents = (blueprint: Blueprint) => {
+export const logBlueprintEvents = (blueprint: BlueprintDeclaration) => {
 	/**
 	 * Log the names of provided Blueprint steps.
 	 * Only the names (e.g. "runPhp" or "login") are logged. Step options like
