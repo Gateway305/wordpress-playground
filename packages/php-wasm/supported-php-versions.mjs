@@ -60,5 +60,5 @@ export const phpVersions = [
 		loaderFilename: 'php_7_2.js',
 		wasmFilename: 'php_7_2.wasm',
 		lastRelease: '7.2.34',
-	},
+	}
 ];
