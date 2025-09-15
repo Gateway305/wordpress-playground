@@ -6,9 +6,11 @@ FROM playground-php-wasm:base
 # compatible with a particular Zend Engine API version.
 ARG PHP_VERSION
 
-ARG WITH_JSPI
+ARG PLATFORM
 
-ARG WITH_DEBUG
+ARG JSPI
+
+ARG DEBUG
 
 # Install Bison, required to build PHP
 RUN mkdir -p /libs
@@ -115,13 +117,15 @@ RUN set -euxo pipefail; \
 	make -j1; \
 	make install; \
 
-	# Calling close() on a file descriptor acquired through WASI syscalls can trigger a JS call/await
-	# during a non-resumable C++ stack frame, leading to "RuntimeError: trying to suspend JS frames".
-	# Since ICU maps the file into memory and does not require the descriptor after mapping
-	# under our build context, skipping close(fd) avoids that suspension error.
-	# NOTE: This means the file descriptor will remain open until process teardown.
-	# This is acceptable here because ICU data files are loaded only once at startup.
-	/root/replace.sh 's/close\(fd\);//' /root/icu/source/common/umapfile.cpp; \
+	if [ "$PLATFORM" = "node" ]; then \
+		# Calling close() on a file descriptor acquired through WASI syscalls can trigger a JS call/await
+		# during a non-resumable C++ stack frame, leading to "RuntimeError: trying to suspend JS frames".
+		# Since ICU maps the file into memory and does not require the descriptor after mapping
+		# under our build context, skipping close(fd) avoids that suspension error.
+		# NOTE: This means the file descriptor will remain open until process teardown.
+		# This is acceptable here because ICU data files are loaded only once at startup.
+		/root/replace.sh 's/close\(fd\);//' /root/icu/source/common/umapfile.cpp; \
+	fi; \
 
 	cd /root/icu/source; \
 	mkdir -p /root; \
@@ -176,21 +180,15 @@ RUN set -euxo pipefail; \
 		/root/replace.sh 's|INTL_SHARED_LIBADD\s*=.*||' Makefile; \
 	fi; \
 
-	# The generated Makefile incorrectly sets INTL_SHARED_LIBADD to include static ICU libraries.
-	# This breaks building a dynamic intl extension with Emscripten.
-	if [[ "${PHP_VERSION:0:1}" -eq "7" && "${PHP_VERSION:2:1}" -le "3" ]]; then \
-		/root/replace.sh 's|INTL_SHARED_LIBADD\s*=.*||' Makefile; \
-	fi; \
-
 	export EMCC_FLAGS="-sSIDE_MODULE -D__x86_64__"; \
 
-	if [ "$WITH_DEBUG" = "yes" ]; then \
+	if [ "$DEBUG" = "yes" ]; then \
 		export EMCC_FLAGS="${EMCC_FLAGS} -O0 -g3"; \
 	else \
 		export EMCC_FLAGS="${EMCC_FLAGS} -O3"; \
 	fi; \
 
-	if [ "$WITH_JSPI" = "yes" ]; then \
+	if [ "$JSPI" = "yes" ]; then \
 		export EMCC_FLAGS="${EMCC_FLAGS} -sJSPI"; \
 	else \
 		export EMCC_FLAGS="${EMCC_FLAGS} -sASYNCIFY -sASYNCIFY_ADVISE"; \
