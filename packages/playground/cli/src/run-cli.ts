@@ -76,13 +76,9 @@ export async function parseOptionsAndRunCLI() {
 					'server',
 					'run-blueprint',
 					'build-snapshot',
-					'run-script',
+					'php',
 				] as const,
 				demandOption: true,
-			})
-			.option('script', {
-				describe: 'PHP script to run',
-				type: 'string',
 			})
 			.option('outfile', {
 				describe: 'When building, write to this output file.',
@@ -117,12 +113,14 @@ export async function parseOptionsAndRunCLI() {
 					'Mount a directory to the PHP runtime (can be used multiple times). Format: /host/path:/vfs/path',
 				type: 'array',
 				string: true,
+				nargs: 1,
 				coerce: parseMountWithDelimiterArguments,
 			})
 			.option('mount-before-install', {
 				describe:
 					'Mount a directory to the PHP runtime before WordPress installation (can be used multiple times). Format: /host/path:/vfs/path',
 				type: 'array',
+				nargs: 1,
 				string: true,
 				coerce: parseMountWithDelimiterArguments,
 			})
@@ -353,6 +351,12 @@ export async function parseOptionsAndRunCLI() {
 				}
 
 				return true;
+			})
+			.command('php', 'Run a PHP script', (yargs) => {
+				return yargs.positional('argv', {
+					describe: 'arguments to pass to the PHP CLI',
+					type: 'string',
+				});
 			});
 
 		yargsObject.wrap(yargsObject.terminalWidth());
@@ -361,12 +365,9 @@ export async function parseOptionsAndRunCLI() {
 		const command = args._[0] as string;
 
 		if (
-			![
-				'run-blueprint',
-				'server',
-				'build-snapshot',
-				'run-script',
-			].includes(command)
+			!['run-blueprint', 'server', 'build-snapshot', 'php'].includes(
+				command
+			)
 		) {
 			yargsObject.showHelp();
 			process.exit(1);
@@ -406,14 +407,18 @@ export async function parseOptionsAndRunCLI() {
 }
 
 export interface RunCLIArgs {
+	/**
+	 * `_` holds positional tokens in the order they appeared.
+	 * `_[0]` will typically be the command name.
+	 */
+	_: string[];
 	blueprint?: BlueprintDeclaration | BlueprintBundle;
-	command: 'server' | 'run-blueprint' | 'build-snapshot' | 'run-script';
+	command: 'server' | 'run-blueprint' | 'build-snapshot' | 'php';
 	debug?: boolean;
 	login?: boolean;
 	mount?: Mount[];
 	'mount-before-install'?: Mount[];
 	outfile?: string;
-	script?: string;
 	php?: SupportedPHPVersion;
 	port?: number;
 	'site-url'?: string;
@@ -700,15 +705,18 @@ export async function runCLI(args: RunCLIArgs): Promise<RunCLIServer> {
 				} else if (args.command === 'run-blueprint') {
 					logger.log(`Blueprint executed`);
 					process.exit(0);
-				} else if (args.command === 'run-script') {
-					const exitCode = await playground.runCLIScript(
-						['php', args.script as string],
-						{
-							env: {
-								SHELL_PIPE: '0',
-							},
-						}
-					);
+				} else if (args.command === 'php') {
+					const argv = [
+						// @TODO: import this from somewhere? Hardcoding it feels fragile.
+						'/internal/shared/bin/php',
+						/**
+						 * args._ are all unparsed positionals arguments, e.g.
+						 */
+						...((args as any)['_'] || []).slice(1),
+					];
+					// @TODO: Call .cli(). Problem: It returns StreamedPHPResponse which
+					//        fails to go through comlink machinery.
+					const exitCode = await playground.runCLIScript(argv);
 					// Wait until the next tick before exiting to ensure the output is flushed.
 					await new Promise((resolve) => setTimeout(resolve, 0));
 					process.exit(exitCode);
