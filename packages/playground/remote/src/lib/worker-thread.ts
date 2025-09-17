@@ -54,10 +54,7 @@ import {
 import { wpVersionToStaticAssetsDirectory } from '@wp-playground/wordpress-builds';
 import { logger } from '@php-wasm/logger';
 import { generateCertificate, certificateToPEM } from '@php-wasm/web';
-import {
-	intlDisabledFunctions,
-	networkingDisabledFunctions,
-} from './disabled-functions';
+import { networkingDisabledFunctions } from './disabled-functions';
 import { WordPressFetchNetworkTransport } from './wordpress-fetch-network-transport';
 /* @ts-ignore */
 import { corsProxyUrl as defaultCorsProxyUrl } from 'virtual:cors-proxy-url';
@@ -90,7 +87,7 @@ export type WorkerBootOptions = {
 	phpVersion?: SupportedPHPVersion;
 	sapiName?: string;
 	scope: string;
-	withICU: boolean;
+	withIntl: boolean;
 	withNetworking: boolean;
 	mounts?: Array<MountDescriptor>;
 	shouldInstallWordPress?: boolean;
@@ -189,7 +186,7 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 		sqliteDriverVersion = LatestSqliteDriverVersion,
 		phpVersion = RecommendedPHPVersion,
 		sapiName = 'cli',
-		withICU = false,
+		withIntl = false,
 		withNetworking = true,
 		shouldInstallWordPress = true,
 		corsProxyUrl,
@@ -295,15 +292,6 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 			};
 			let CAroot: false | GeneratedCertificate = false;
 			let tcpOverFetch: TCPOverFetchOptions | undefined = undefined;
-			if (!withICU) {
-				phpIniEntries['disable_functions'] = (
-					phpIniEntries['disable_functions'] ?? ''
-				)
-					.split(',')
-					.concat(intlDisabledFunctions)
-					.filter((n) => n)
-					.join(',');
-			}
 			if (withNetworking) {
 				/**
 				 * Generate a self-signed CA certificate and tell PHP to trust it.
@@ -350,7 +338,7 @@ export class PlaygroundWorkerEndpoint extends PHPWorker {
 					let wasmUrl = '';
 					return await loadWebRuntime(phpVersion, {
 						tcpOverFetch,
-						withICU,
+						withIntl,
 						emscriptenOptions: {
 							instantiateWasm(imports, receiveInstance) {
 								// Using .then because Emscripten typically returns an empty
