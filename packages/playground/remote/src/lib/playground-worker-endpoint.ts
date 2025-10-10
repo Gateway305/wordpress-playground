@@ -73,6 +73,13 @@ export type WorkerBootOptions = {
 	experimentalBlueprintsV2Runner?: boolean;
 	/** Blueprint v2 declaration to run in the worker when experimental mode is on */
 	blueprint?: BlueprintDeclaration;
+	/**
+	 * Optional Blueprint overrides applied during execution (v2 runner only).
+	 */
+	blueprintOverrides?: {
+		wordpressVersion?: string;
+		login?: boolean;
+	};
 };
 
 /** @inheritDoc PHPClient */

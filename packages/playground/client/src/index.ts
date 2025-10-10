@@ -31,7 +31,11 @@ import type {
 	OnStepCompleted,
 } from '@wp-playground/blueprints';
 import { ProgressTracker } from '@php-wasm/progress';
-import type { MountDescriptor, PlaygroundClient } from '@wp-playground/remote';
+import type {
+	MountDescriptor,
+	PlaygroundClient,
+	WorkerBootOptions,
+} from '@wp-playground/remote';
 import { additionalRemoteOrigins } from './additional-remote-origins';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { remoteDevServerHost, remoteDevServerPort } from '../../build-config';
@@ -90,6 +94,10 @@ export interface StartPlaygroundOptions {
 	 * Defaults to the latest development version.
 	 */
 	sqliteDriverVersion?: string;
+	/**
+	 * Overrides applied when running the Blueprint v2 PHP runner.
+	 */
+	blueprintOverrides?: WorkerBootOptions['blueprintOverrides'];
 }
 
 /**

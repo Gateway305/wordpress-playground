@@ -12,6 +12,10 @@ self.postMessage('worker-script-started');
 
 const downloadMonitor = new EmscriptenDownloadMonitor();
 
+type WorkerV2BootOptions = WorkerBootOptions & {
+	blueprint: BlueprintV2Declaration;
+};
+
 class PlaygroundWorkerEndpointV2 extends PlaygroundWorkerEndpoint {
 	override async boot({
 		scope,
@@ -23,7 +27,8 @@ class PlaygroundWorkerEndpointV2 extends PlaygroundWorkerEndpoint {
 		withNetworking = true,
 		corsProxyUrl,
 		blueprint,
-	}: WorkerBootOptions) {
+		blueprintOverrides,
+	}: WorkerV2BootOptions) {
 		if (this.booted) {
 			throw new Error('Playground already booted');
 		}
@@ -32,7 +37,30 @@ class PlaygroundWorkerEndpointV2 extends PlaygroundWorkerEndpoint {
 		}
 		this.booted = true;
 		this.scope = scope;
-		this.requestedWordPressVersion = wpVersion;
+		this.requestedWordPressVersion =
+			blueprintOverrides?.wordpressVersion ?? wpVersion;
+
+		const autoLogin =
+			blueprint?.applicationOptions?.['wordpress-playground']?.login;
+
+		if (blueprintOverrides) {
+			blueprintOverrides = {
+				...blueprintOverrides,
+				wordpressVersion: this.requestedWordPressVersion,
+			};
+		}
+		if (autoLogin) {
+			blueprintOverrides = {
+				...blueprintOverrides,
+				additionalSteps: [
+					{
+						step: 'defineConstant',
+						name: 'PLAYGROUND_AUTO_LOGIN_AS_USER',
+						value: autoLogin,
+					},
+				],
+			};
+		}
 
 		try {
 			const knownRemoteAssetPaths = new Set<string>();
@@ -58,6 +86,7 @@ class PlaygroundWorkerEndpointV2 extends PlaygroundWorkerEndpoint {
 				php: primaryPhp,
 				cliArgs: ['--site-url=' + siteUrl],
 				blueprint: blueprint as BlueprintV2Declaration,
+				blueprintOverrides,
 				onMessage: async (message: any) => {
 					this.dispatchEvent({
 						type: 'blueprint.message',

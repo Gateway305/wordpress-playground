@@ -121,6 +121,12 @@ export function bootSiteClient(
 				remoteUrl: getRemoteUrl().toString(),
 				scope: site.slug,
 				blueprint,
+				blueprintOverrides: {
+					wordpressVersion:
+						site.metadata.runtimeConfiguration.wpVersion,
+					login:
+						site?.originalUrlParams?.searchParams?.login === 'yes',
+				},
 				experimentalBlueprintsV2Runner:
 					!isWordPressInstalled &&
 					new URLSearchParams(window.location.search).get(

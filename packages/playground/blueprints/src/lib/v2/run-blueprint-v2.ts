@@ -124,6 +124,7 @@ export async function runBlueprintV2(
 	/**
 	 * Prepare hooks, filters, and run the Blueprint:
 	 */
+	console.log(options.blueprintOverrides?.wordpressVersion);
 	await php?.writeFile(
 		'/tmp/run-blueprints.php',
 		`<?php
