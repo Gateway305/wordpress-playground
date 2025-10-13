@@ -60,6 +60,12 @@ export type {
 export { getV2Runner } from './lib/v2/get-v2-runner';
 export { runBlueprintV2 } from './lib/v2/run-blueprint-v2';
 export type { BlueprintMessage } from './lib/v2/run-blueprint-v2';
+export { resolvePlaygroundApplicationOptions } from './lib/v2/resolve-playground-application-options';
+export type {
+	PlaygroundApplicationOverrides,
+	PlaygroundLoginPreference,
+	ResolvedPlaygroundApplicationOptions,
+} from './lib/v2/resolve-playground-application-options';
 
 export { resolveRemoteBlueprint } from './lib/resolve-remote-blueprint';
 export { wpContentFilesExcludedFromExport } from './lib/utils/wp-content-files-excluded-from-exports';

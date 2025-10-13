@@ -2,6 +2,10 @@ import type { ProgressTracker } from '@php-wasm/progress';
 import type { PlaygroundClient, StartPlaygroundOptions } from '.';
 import { collectPhpLogs, logger } from '@php-wasm/logger';
 import { consumeAPI } from '@php-wasm/universal';
+import {
+	resolvePlaygroundApplicationOptions,
+	type BlueprintV2Declaration,
+} from '@wp-playground/blueprints';
 
 export class BlueprintsV2Handler {
 	constructor(private readonly options: StartPlaygroundOptions) {}
@@ -10,7 +14,6 @@ export class BlueprintsV2Handler {
 		iframe: HTMLIFrameElement,
 		progressTracker: ProgressTracker
 	) {
-		console.log({ options: this.options });
 		const {
 			blueprint,
 			onClientConnected,
@@ -22,6 +25,12 @@ export class BlueprintsV2Handler {
 		} = this.options;
 		const downloadProgress = progressTracker!.stage(0.25);
 		const executionProgress = progressTracker!.stage(0.75);
+
+		if (!blueprint) {
+			throw new Error(
+				'Blueprints v2 handler requires a Blueprint v2 declaration.'
+			);
+		}
 
 		// Connect the Comlink API client to the remote worker,
 		// boot the playground, and run the blueprint steps.
@@ -85,6 +94,11 @@ export class BlueprintsV2Handler {
 			}
 		);
 
+		const resolvedApplicationOptions = resolvePlaygroundApplicationOptions(
+			blueprint as BlueprintV2Declaration,
+			blueprintOverrides
+		);
+
 		await playground.boot({
 			mounts,
 			sapiName,
@@ -94,6 +108,7 @@ export class BlueprintsV2Handler {
 			// Pass the declaration directly – the worker runs the V2 runner.
 			blueprint: blueprint as any,
 			blueprintOverrides,
+			withNetworking: resolvedApplicationOptions.networkAccess,
 		} as any);
 
 		await playground.isReady();
@@ -102,19 +117,26 @@ export class BlueprintsV2Handler {
 		collectPhpLogs(logger, playground);
 		onClientConnected?.(playground);
 
-		// @TODO: Get the landing page from the Blueprint.
-		playground.goTo('/');
+		try {
+			const landingUrl = await (playground as any).pathToInternalUrl(
+				resolvedApplicationOptions.landingPage || '/'
+			);
+			await (playground as any).goTo(
+				'/index.php?playground-redirection-handler&next=' +
+					encodeURIComponent(landingUrl)
+			);
+		} catch {
+			// ignored – only available in browser runtimes
+		}
 
 		/**
 		 * Pre-fetch WordPress update checks to speed up the initial wp-admin load.
 		 *
 		 * @see https://github.com/WordPress/wordpress-playground/pull/2295
 		 */
-		// @TODO get the enabled features somehow – probably using the same
-		//       resolveRuntimeConfiguration() logic as the redux site-slice.ts
-		// if (compiled.features.networking) {
-		// 	await playground.prefetchUpdateChecks();
-		// }
+		if (resolvedApplicationOptions.networkAccess) {
+			await playground.prefetchUpdateChecks();
+		}
 
 		return playground;
 	}

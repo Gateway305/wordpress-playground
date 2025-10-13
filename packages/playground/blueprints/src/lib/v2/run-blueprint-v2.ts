@@ -10,6 +10,7 @@ import {
 	type ParsedBlueprintV1orV2String,
 	parseBlueprintDeclaration,
 } from './blueprint-v2-declaration';
+import type { PlaygroundApplicationOverrides } from './resolve-playground-application-options';
 import type { BlueprintV1Declaration } from '../v1/types';
 
 export type PHPExceptionDetails = {
@@ -37,7 +38,7 @@ interface RunV2Options {
 		| RawBlueprintV2Data
 		| ParsedBlueprintV1orV2String
 		| BlueprintV1Declaration;
-	blueprintOverrides?: {
+	blueprintOverrides?: PlaygroundApplicationOverrides & {
 		wordpressVersion?: string;
 		additionalSteps?: any[];
 	};

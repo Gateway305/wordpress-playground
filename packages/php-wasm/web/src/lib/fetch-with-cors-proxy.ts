@@ -36,7 +36,6 @@ export async function fetchWithCorsProxy(
 	// @TODO: Fix this bug in the blueprints v2 runner
 	if (requestObject.url.includes('?channel=beta')) {
 		const parsedUrl = new URL(requestObject.url);
-		console.log('parsedUrl', parsedUrl.pathname);
 		if (parsedUrl.pathname.includes('%3Fchannel=beta')) {
 			parsedUrl.pathname = parsedUrl.pathname.replace(
 				'%3Fchannel=beta',

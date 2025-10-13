@@ -2,7 +2,10 @@ import { EmscriptenDownloadMonitor } from '@php-wasm/progress';
 import { exposeAPI } from '@php-wasm/web';
 import { PlaygroundWorkerEndpoint } from './playground-worker-endpoint';
 import type { WorkerBootOptions } from './playground-worker-endpoint';
-import { runBlueprintV2 } from '@wp-playground/blueprints';
+import {
+	resolvePlaygroundApplicationOptions,
+	runBlueprintV2,
+} from '@wp-playground/blueprints';
 import type { BlueprintV2Declaration } from '@wp-playground/blueprints';
 /* @ts-ignore */
 import { corsProxyUrl as defaultCorsProxyUrl } from 'virtual:cors-proxy-url';
@@ -40,27 +43,37 @@ class PlaygroundWorkerEndpointV2 extends PlaygroundWorkerEndpoint {
 		this.requestedWordPressVersion =
 			blueprintOverrides?.wordpressVersion ?? wpVersion;
 
-		const autoLogin =
-			blueprint?.applicationOptions?.['wordpress-playground']?.login;
+		const resolvedApplicationOptions = resolvePlaygroundApplicationOptions(
+			blueprint,
+			blueprintOverrides
+		);
 
-		if (blueprintOverrides) {
-			blueprintOverrides = {
-				...blueprintOverrides,
+		let preparedOverrides =
+			blueprintOverrides === undefined
+				? undefined
+				: { ...blueprintOverrides };
+		if (this.requestedWordPressVersion) {
+			preparedOverrides = {
+				...(preparedOverrides ?? {}),
 				wordpressVersion: this.requestedWordPressVersion,
 			};
 		}
-		if (autoLogin) {
-			blueprintOverrides = {
-				...blueprintOverrides,
+		if (resolvedApplicationOptions.login.enabled) {
+			preparedOverrides = {
+				...(preparedOverrides ?? {}),
 				additionalSteps: [
+					...(preparedOverrides?.additionalSteps ?? []),
 					{
 						step: 'defineConstant',
 						name: 'PLAYGROUND_AUTO_LOGIN_AS_USER',
-						value: autoLogin,
+						value:
+							resolvedApplicationOptions.login.username ||
+							'admin',
 					},
 				],
 			};
 		}
+		blueprintOverrides = preparedOverrides;
 
 		try {
 			const knownRemoteAssetPaths = new Set<string>();

@@ -15,6 +15,7 @@ import type { Blueprint } from '@wp-playground/blueprints';
 import { logger } from '@php-wasm/logger';
 import { setupPostMessageRelay } from '@php-wasm/web';
 import { startPlaygroundWeb } from '@wp-playground/client';
+import type { StartPlaygroundOptions } from '@wp-playground/client';
 import type { PlaygroundClient } from '@wp-playground/remote';
 import { getRemoteUrl } from '../../config';
 import { setActiveModal, setActiveSiteError } from './slice-ui';
@@ -23,6 +24,10 @@ import { selectSiteBySlug } from './slice-sites';
 // @ts-ignore
 import { corsProxyUrl } from 'virtual:cors-proxy-url';
 import { modalSlugs } from '../../../components/layout';
+import {
+	buildPlaygroundApplicationOverridesFromQuery,
+	recordToSearchParams,
+} from '../url/query-overrides';
 
 export function bootSiteClient(
 	siteSlug: string,
@@ -117,6 +122,28 @@ export function bootSiteClient(
 		console.log('site object', site);
 		console.log('site metadata', site.metadata);
 
+		const originalSearchParams = recordToSearchParams(
+			site?.originalUrlParams?.searchParams
+		);
+		const queryOverrides =
+			buildPlaygroundApplicationOverridesFromQuery(originalSearchParams);
+		const blueprintOverridesForRunner: NonNullable<
+			StartPlaygroundOptions['blueprintOverrides']
+		> = {
+			wordpressVersion: site.metadata.runtimeConfiguration.wpVersion,
+		};
+		if (queryOverrides.login !== undefined) {
+			blueprintOverridesForRunner.login = queryOverrides.login;
+		}
+		if (queryOverrides.landingPage !== undefined) {
+			blueprintOverridesForRunner.landingPage =
+				queryOverrides.landingPage;
+		}
+		if (queryOverrides.networkAccess !== undefined) {
+			blueprintOverridesForRunner.networkAccess =
+				queryOverrides.networkAccess;
+		}
+
 		let playground: PlaygroundClient;
 		try {
 			playground = await startPlaygroundWeb({
@@ -124,12 +151,7 @@ export function bootSiteClient(
 				remoteUrl: getRemoteUrl().toString(),
 				scope: site.slug,
 				blueprint,
-				blueprintOverrides: {
-					wordpressVersion:
-						site.metadata.runtimeConfiguration.wpVersion,
-					login:
-						site?.originalUrlParams?.searchParams?.login === 'yes',
-				},
+				blueprintOverrides: blueprintOverridesForRunner,
 				experimentalBlueprintsV2Runner:
 					!isWordPressInstalled &&
 					new URLSearchParams(window.location.search).get(

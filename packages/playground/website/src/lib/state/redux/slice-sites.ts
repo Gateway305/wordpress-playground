@@ -21,6 +21,8 @@ import {
 } from '../url/resolve-blueprint-from-url';
 import { logger } from '@php-wasm/logger';
 import { RecommendedPHPVersion } from '@wp-playground/common';
+import { buildPlaygroundApplicationOverridesFromQuery } from '../url/query-overrides';
+import { resolvePlaygroundApplicationOptions } from '@wp-playground/blueprints';
 
 /**
  * The Site model used to represent a site within Playground.
@@ -304,6 +306,8 @@ export function setTemporarySiteSpec(
 		);
 
 		const query = playgroundUrlWithQueryApiArgs.searchParams;
+		const queryOverrides =
+			buildPlaygroundApplicationOverridesFromQuery(query);
 		if (reflection.getVersion() === 1) {
 			resolvedBlueprint.blueprint = await applyQueryOverrides(
 				resolvedBlueprint.blueprint,
@@ -314,14 +318,17 @@ export function setTemporarySiteSpec(
 			)!;
 		} else {
 			// @TODO: align with v1 overrides, especially around core-pr and gutenberg-pr params
+			const resolvedApplicationOptions =
+				resolvePlaygroundApplicationOptions(
+					resolvedBlueprint.blueprint as any,
+					queryOverrides
+				);
 			runtimeConfiguration = {
 				constants: {},
 				extraLibraries: [],
 				// TODO:
 				intl: false,
-				networking:
-					!query.get('networking') &&
-					query.get('networking') !== 'yes',
+				networking: resolvedApplicationOptions.networkAccess,
 				phpVersion: query.get('php') || (RecommendedPHPVersion as any),
 				wpVersion: query.get('wp') || ('latest' as any),
 			};

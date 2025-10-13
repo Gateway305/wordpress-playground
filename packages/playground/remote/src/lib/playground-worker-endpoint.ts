@@ -37,7 +37,10 @@ import {
 	sandboxedSpawnHandlerFactory,
 } from '@php-wasm/universal';
 import { certificateToPEM, generateCertificate } from '@php-wasm/web';
-import type { BlueprintDeclaration } from '@wp-playground/blueprints';
+import type {
+	BlueprintDeclaration,
+	PlaygroundApplicationOverrides,
+} from '@wp-playground/blueprints';
 import {
 	bootRequestHandler,
 	getFileNotFoundActionForWordPress,
@@ -76,9 +79,9 @@ export type WorkerBootOptions = {
 	/**
 	 * Optional Blueprint overrides applied during execution (v2 runner only).
 	 */
-	blueprintOverrides?: {
+	blueprintOverrides?: PlaygroundApplicationOverrides & {
 		wordpressVersion?: string;
-		login?: boolean;
+		additionalSteps?: any[];
 	};
 };
 
