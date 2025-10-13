@@ -114,6 +114,9 @@ export function bootSiteClient(
 			blueprint = site.metadata.originalBlueprint;
 		}
 
+		console.log('site object', site);
+		console.log('site metadata', site.metadata);
+
 		let playground: PlaygroundClient;
 		try {
 			playground = await startPlaygroundWeb({

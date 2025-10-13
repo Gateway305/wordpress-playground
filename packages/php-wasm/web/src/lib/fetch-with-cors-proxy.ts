@@ -6,7 +6,7 @@ export async function fetchWithCorsProxy(
 	corsProxyUrl?: string,
 	playgroundUrl?: string
 ): Promise<Response> {
-	const requestObject =
+	let requestObject =
 		typeof input === 'string' ? new Request(input, init) : input;
 	if (!corsProxyUrl) {
 		return await fetch(requestObject);
@@ -33,6 +33,20 @@ export async function fetchWithCorsProxy(
 		return await fetch(requestObject);
 	}
 
+	// @TODO: Fix this bug in the blueprints v2 runner
+	if (requestObject.url.includes('?channel=beta')) {
+		const parsedUrl = new URL(requestObject.url);
+		console.log('parsedUrl', parsedUrl.pathname);
+		if (parsedUrl.pathname.includes('%3Fchannel=beta')) {
+			parsedUrl.pathname = parsedUrl.pathname.replace(
+				'%3Fchannel=beta',
+				''
+			);
+			requestObject = await cloneRequest(requestObject, {
+				url: parsedUrl,
+			});
+		}
+	}
 	// Tee the request to avoid consuming the request body stream on the initial
 	// fetch() so that we can retry through the cors proxy.
 	const [request1, request2] = await teeRequest(requestObject);

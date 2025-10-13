@@ -10,6 +10,7 @@ export class BlueprintsV2Handler {
 		iframe: HTMLIFrameElement,
 		progressTracker: ProgressTracker
 	) {
+		console.log({ options: this.options });
 		const {
 			blueprint,
 			onClientConnected,

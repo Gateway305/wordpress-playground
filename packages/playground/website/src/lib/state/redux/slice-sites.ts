@@ -20,6 +20,7 @@ import {
 	applyQueryOverrides,
 } from '../url/resolve-blueprint-from-url';
 import { logger } from '@php-wasm/logger';
+import { RecommendedPHPVersion } from '@wp-playground/common';
 
 /**
  * The Site model used to represent a site within Playground.
@@ -297,14 +298,33 @@ export function setTemporarySiteSpec(
 			);
 		}
 
+		let runtimeConfiguration: RuntimeConfiguration | undefined = undefined;
 		const reflection = await BlueprintReflection.create(
 			resolvedBlueprint.blueprint
 		);
+
+		const query = playgroundUrlWithQueryApiArgs.searchParams;
 		if (reflection.getVersion() === 1) {
 			resolvedBlueprint.blueprint = await applyQueryOverrides(
 				resolvedBlueprint.blueprint,
-				playgroundUrlWithQueryApiArgs.searchParams
+				query
 			);
+			runtimeConfiguration = await resolveRuntimeConfiguration(
+				resolvedBlueprint.blueprint
+			)!;
+		} else {
+			// @TODO: align with v1 overrides, especially around core-pr and gutenberg-pr params
+			runtimeConfiguration = {
+				constants: {},
+				extraLibraries: [],
+				// TODO:
+				intl: false,
+				networking:
+					!query.get('networking') &&
+					query.get('networking') !== 'yes',
+				phpVersion: query.get('php') || (RecommendedPHPVersion as any),
+				wpVersion: query.get('wp') || ('latest' as any),
+			};
 		}
 
 		// Compute the runtime configuration based on the resolved Blueprint:
@@ -318,9 +338,7 @@ export function setTemporarySiteSpec(
 				storage: 'none' as const,
 				originalBlueprint: resolvedBlueprint.blueprint,
 				originalBlueprintSource: resolvedBlueprint.source!,
-				runtimeConfiguration: await resolveRuntimeConfiguration(
-					resolvedBlueprint.blueprint
-				)!,
+				runtimeConfiguration: runtimeConfiguration!,
 			},
 		};
 		dispatch(sitesSlice.actions.addSite(newSiteInfo));
