@@ -4,6 +4,66 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.10] (2025-10-13) 
+
+### Enhancements
+
+- Update form-data npm dependency via package.json overrides. ([#2761](https://github.com/WordPress/wordpress-playground/pull/2761))
+- Update sha to 2.4.12. ([#2729](https://github.com/WordPress/wordpress-playground/pull/2729))
+- Update tmp package to the latest version. ([#2730](https://github.com/WordPress/wordpress-playground/pull/2730))
+- [XDebug Bridge] Read files from VFS when a PHP instance is provided. ([#2722](https://github.com/WordPress/wordpress-playground/pull/2722))
+
+### Blueprints
+
+- Accept branch names and tags in git:Directory resource. ([#2760](https://github.com/WordPress/wordpress-playground/pull/2760))
+
+### Tools
+
+- [CLI] Respond with HTTP 500 response when the request handler throws an error. ([#2715](https://github.com/WordPress/wordpress-playground/pull/2715))
+
+### Documentation
+
+- Add docblock for createInvertedReadableStream. ([#2726](https://github.com/WordPress/wordpress-playground/pull/2726))
+- Adding Kapa AI script tag. ([#2727](https://github.com/WordPress/wordpress-playground/pull/2727))
+- [Docs] Updating resources page. ([#2771](https://github.com/WordPress/wordpress-playground/pull/2771))
+- [i18n] Adding Bengali Structure. ([#2754](https://github.com/WordPress/wordpress-playground/pull/2754))
+
+### PHP WebAssembly
+
+- [ xdebug ] Configure `xdebug` for phpstorm compatibility. ([#2747](https://github.com/WordPress/wordpress-playground/pull/2747))
+
+### Website
+
+- Adding new icons to Playground web instance. ([#2696](https://github.com/WordPress/wordpress-playground/pull/2696))
+- Allow remote.html from same origin as Playground client script. ([#2765](https://github.com/WordPress/wordpress-playground/pull/2765))
+- Make deployment script more usable for self-hosting. ([#2764](https://github.com/WordPress/wordpress-playground/pull/2764))
+
+### Internal
+
+- Add Dependabot configuration for npm updates. ([#2733](https://github.com/WordPress/wordpress-playground/pull/2733))
+- [Meta] Fix package-lock.json after dependabot. ([#2745](https://github.com/WordPress/wordpress-playground/pull/2745))
+
+### Bug Fixes
+
+- Fixing old documentation regarding PHP code examples. ([#2721](https://github.com/WordPress/wordpress-playground/pull/2721))
+- [i18n] Fix issue related to link in french translation. ([#2748](https://github.com/WordPress/wordpress-playground/pull/2748))
+
+### Various
+
+- Deploy web app less often to reduce cache invalidation. ([#2762](https://github.com/WordPress/wordpress-playground/pull/2762))
+- [Meta] Fix package-lock.json after dependabot. ([#2746](https://github.com/WordPress/wordpress-playground/pull/2746))
+- [i18n] Add Japanese translations to APIs overview. ([#2770](https://github.com/WordPress/wordpress-playground/pull/2770))
+- [i18n] Add translation to page title in resources.md. ([#2728](https://github.com/WordPress/wordpress-playground/pull/2728))
+- [i18n] Adding French translation to intro.md. ([#2724](https://github.com/WordPress/wordpress-playground/pull/2724))
+- [i18n] Fixing typos in French translation quick-start-guide.md. ([#2725](https://github.com/WordPress/wordpress-playground/pull/2725))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @beryl-dlg @brandonpayton @fellyph @mho22 @shimotmk @wojtekn @zaerl
+
+
 ## [v3.0.9] (2025-10-06) 
 
 ### Tools
