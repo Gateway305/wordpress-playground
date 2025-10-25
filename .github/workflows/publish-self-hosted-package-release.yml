@@ -1,4 +1,4 @@
-name: Release self-hosted packages
+name:gateway305
 
 on:
     workflow_dispatch:
@@ -42,7 +42,7 @@ jobs:
                   persist-credentials: false
                   submodules: true
             - name: Config git user
-              run: |
+              run: |kwamanebrown85@gmail.com
                   git config --global user.name "deployment_bot"
                   git config --global user.email "deployment_bot@users.noreply.github.com"
                   git remote set-url origin https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}
